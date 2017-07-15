@@ -10,8 +10,17 @@ import subprocess;
 
 print "Content-Type: application/json\n\n";
 
+BACKSLASH = chr(92);
+BACKSPACE = chr(8);
+FORM_FEED = chr(12);
+CARRETURN = chr(13);
+TAB_CHAR = chr(9);
+DOUBLE_QUOTE = '"';
+NEWLINE = '\n';
+
+
 def sanitizeAndSplitSqliteOutput(sqliteOutput):
-    return sqliteOutput.replace('"','%22')[:-1].split('|',2);
+    return sqliteOutput[:-1].replace(BACKSLASH,BACKSLASH + BACKSLASH).replace(FORM_FEED,BACKSLASH + "f").replace(NEWLINE, BACKSLASH + "n").replace(TAB_CHAR, BACKSLASH + 't').replace(DOUBLE_QUOTE, BACKSLASH + DOUBLE_QUOTE).replace(CARRETURN, BACKSLASH + 'r').replace(BACKSPACE, BACKSLASH + 'b').split('|',2);
 
 form = cgi.FieldStorage();
 
