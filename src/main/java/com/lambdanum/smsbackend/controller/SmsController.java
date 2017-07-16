@@ -1,7 +1,7 @@
 package com.lambdanum.smsbackend.controller;
 
-import com.lambdanum.smsbackend.SMS.Sms;
-import com.lambdanum.smsbackend.SMS.SmsLineFacade;
+import com.lambdanum.smsbackend.sms.SmsLineFacade;
+import com.lambdanum.smsbackend.sms.model.Sms;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -24,9 +24,12 @@ public class SmsController {
         response.setDestination(incomingMessage.getDestination());
         response.setMessage("Spring has received your message. Your number: " + id.toString());
 
-        smsLineFacade.sendSms(response);
-
-        return "OK";
+        if (smsLineFacade.sendSms(response).isSuccessful()) {
+            return "OK";
+        } else {
+            System.out.println("Error while sending sms.");
+            return "Error";
+        }
     }
 
 

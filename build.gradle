@@ -25,8 +25,10 @@ targetCompatibility = 1.8
 
 dependencies {
     compile 'org.springframework.boot:spring-boot-starter-web'
+    compile 'org.apache.opennlp:1.8.1'
     testCompile 'junit:junit:4.12'
     testCompile('org.springframework.boot:spring-boot-starter-test')
+    testCompile 'org.mockito:mockito-core:2.+'
 }
 
 task hello {

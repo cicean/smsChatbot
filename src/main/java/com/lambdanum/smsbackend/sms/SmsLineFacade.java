@@ -1,5 +1,7 @@
-package com.lambdanum.smsbackend.SMS;
+package com.lambdanum.smsbackend.sms;
 
+import com.lambdanum.smsbackend.sms.model.SendSmsResult;
+import com.lambdanum.smsbackend.sms.model.Sms;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
@@ -16,7 +18,7 @@ public class SmsLineFacade {
         return restTemplate.getForObject(SMS_LINE_URL + "/get_message.py?message_id=" + id.toString(),Sms.class);
     }
 
-    public String sendSms(Sms message) {
-        return restTemplate.getForObject(SMS_LINE_URL + String.format("/send_message.py?destination=%s&message=%s",message.getDestination().substring(1), message.getMessage()),String.class);
+    public SendSmsResult sendSms(Sms message) {
+        return restTemplate.getForObject(SMS_LINE_URL + String.format("/send_message.py?destination=%s&message=%s",message.getDestination(), message.getMessage()),SendSmsResult.class);
     }
 }

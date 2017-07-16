@@ -1,4 +1,4 @@
-package com.lambdanum.smsbackend.SMS;
+package com.lambdanum.smsbackend.sms.model;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
@@ -11,6 +11,8 @@ public class Sms {
     @JsonProperty("chat_identifier")
     private String destination;
     private Date date;
+    @JsonProperty("is_from_me")
+    private Boolean isOutbound;
 
     public Long getId() {
         return id;
@@ -42,5 +44,13 @@ public class Sms {
 
     public void setDate(Date date) {
         this.date = date;
+    }
+
+    public Boolean getFromMe() {
+        return isOutbound;
+    }
+
+    public void setFromMe(Boolean fromMe) {
+        isOutbound = fromMe;
     }
 }
