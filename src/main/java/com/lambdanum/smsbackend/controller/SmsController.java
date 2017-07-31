@@ -1,5 +1,6 @@
 package com.lambdanum.smsbackend.controller;
 
+import com.lambdanum.smsbackend.nlp.TokenizerService;
 import com.lambdanum.smsbackend.sms.SmsLineFacade;
 import com.lambdanum.smsbackend.sms.model.Sms;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -13,6 +14,9 @@ public class SmsController {
     @Autowired
     private SmsLineFacade smsLineFacade;
 
+    @Autowired
+    private TokenizerService tokenizerService;
+
     @RequestMapping("/sms_received")
     public String processIncomingMessage(@RequestParam(name = "id") Long id) {
         System.out.println(String.format("Received id %s",id.toString()));
@@ -24,12 +28,19 @@ public class SmsController {
         response.setDestination(incomingMessage.getDestination());
         response.setMessage("Spring has received your message. Your number: " + id.toString());
 
+
+        System.out.println(tokenizerService.tokenizeAndStem(incomingMessage.getMessage()));
+
+
         if (smsLineFacade.sendSms(response).isSuccessful()) {
             return "OK";
         } else {
             System.out.println("Error while sending sms.");
             return "Error";
         }
+
+
+
     }
 
 

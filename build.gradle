@@ -25,7 +25,8 @@ targetCompatibility = 1.8
 
 dependencies {
     compile 'org.springframework.boot:spring-boot-starter-web'
-    compile 'org.apache.opennlp:1.8.1'
+    compile 'org.apache.opennlp:opennlp-tools:1.8.1'
+    compile group: 'org.apache.commons', name: 'commons-lang3', version: '3.0'
     testCompile 'junit:junit:4.12'
     testCompile('org.springframework.boot:spring-boot-starter-test')
     testCompile 'org.mockito:mockito-core:2.+'
