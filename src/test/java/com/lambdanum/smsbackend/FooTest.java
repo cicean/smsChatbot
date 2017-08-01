@@ -1,6 +1,6 @@
 package com.lambdanum.smsbackend;
 
-import com.lambdanum.smsbackend.sms.SmsLineFacade;
+import com.lambdanum.smsbackend.sms.SmsProvider;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -14,7 +14,7 @@ import static org.junit.Assert.assertTrue;
 public class FooTest {
 
     @Mock
-    private SmsLineFacade smsLineFacade;
+    private SmsProvider smsProvider;
 
     @Before
     public void setup() {

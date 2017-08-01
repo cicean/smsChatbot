@@ -1,12 +1,14 @@
 package com.lambdanum.smsbackend.sms.model;
 
-public class SendSmsResult {
+import com.lambdanum.smsbackend.messaging.SendResult;
+
+public class SendSmsResult extends SendResult {
 
     public String getError() {
         return error;
     }
 
-    public Boolean isSuccessful() {
+    public boolean isSuccessful() {
         return "None".equals(error);
     }
 

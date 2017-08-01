@@ -3,12 +3,12 @@ package com.lambdanum.smsbackend.command;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 
-public class CommandConstruct {
+public class MethodInvocationWrapper {
 
     private Object object;
     private Method method;
 
-    public CommandConstruct(Object object, Method method) {
+    public MethodInvocationWrapper(Object object, Method method) {
         this.object = object;
         this.method = method;
     }

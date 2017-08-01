@@ -1,13 +1,15 @@
 package com.lambdanum.smsbackend.sms.model;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.lambdanum.smsbackend.messaging.Message;
 
 import java.util.Date;
 
-public class Sms {
+public class Sms implements Message {
 
     private Long id;
-    private String message;
+    @JsonProperty("message")
+    private String content;
     @JsonProperty("chat_identifier")
     private String destination;
     private Date date;
@@ -22,14 +24,16 @@ public class Sms {
         this.id = id;
     }
 
-    public String getMessage() {
-        return message;
+    @Override
+    public String getContent() {
+        return content;
     }
 
-    public void setMessage(String message) {
-        this.message = message;
+    public void setContent(String content) {
+        this.content = content;
     }
 
+    @Override
     public String getDestination() {
         return destination;
     }
@@ -38,19 +42,17 @@ public class Sms {
         this.destination = destination;
     }
 
+    @Override
     public Date getDate() {
         return date;
     }
 
-    public void setDate(Date date) {
-        this.date = date;
-    }
-
-    public Boolean getFromMe() {
+    @Override
+    public Boolean isOutbound() {
         return isOutbound;
     }
 
-    public void setFromMe(Boolean fromMe) {
-        isOutbound = fromMe;
+    public void setDate(Date date) {
+        this.date = date;
     }
 }

@@ -1,9 +1,7 @@
 package com.lambdanum.smsbackend.command;
 
-import org.springframework.stereotype.Component;
-
-@Component
-public class BazCommand implements CommandListener {
+@CommandListener
+public class BazCommand {
 
     @CommandHandler(command = "foo bar baz")
     public void executeFoobarBaz() {

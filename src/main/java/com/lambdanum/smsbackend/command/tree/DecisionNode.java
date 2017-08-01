@@ -1,21 +1,22 @@
 package com.lambdanum.smsbackend.command.tree;
 
 
-import com.lambdanum.smsbackend.command.CommandConstruct;
+import com.lambdanum.smsbackend.command.MethodInvocationWrapper;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 
 public class DecisionNode {
 
     private Map<String, DecisionNode> children = new HashMap<>();
 
-    private CommandConstruct commandConstruct;
+    private MethodInvocationWrapper methodInvocationWrapper;
 
     public DecisionNode() {}
 
-    public DecisionNode(CommandConstruct commandConstruct) {
-        this.commandConstruct = commandConstruct;
+    public DecisionNode(MethodInvocationWrapper methodInvocationWrapper) {
+        this.methodInvocationWrapper = methodInvocationWrapper;
     }
 
     public void registerChild(String command, DecisionNode child) {
@@ -31,18 +32,22 @@ public class DecisionNode {
     }
 
     public boolean isExitNode() {
-        return commandConstruct != null;
+        return methodInvocationWrapper != null;
     }
 
-    public void setCommandConstruct(CommandConstruct commandConstruct) {
-        this.commandConstruct = commandConstruct;
+    public void setMethodInvocationWrapper(MethodInvocationWrapper methodInvocationWrapper) {
+        this.methodInvocationWrapper = methodInvocationWrapper;
     }
 
     public Object invoke(Object... args) {
-        return commandConstruct.invoke(args);
+        return methodInvocationWrapper.invoke(args);
     }
 
     public static DecisionNode createRootNode() {
         return new DecisionNode();
+    }
+
+    public Set<String> getChildren() {
+        return children.keySet();
     }
 }

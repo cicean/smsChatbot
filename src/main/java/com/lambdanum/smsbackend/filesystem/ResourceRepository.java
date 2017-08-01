@@ -23,8 +23,6 @@ public class ResourceRepository {
             return new FileInputStream(classLoader.getResource(resourcePath).getFile());
         } catch (FileNotFoundException e) {
             throw new RuntimeException(String.format("File not found %s.",resourcePath));
-        } catch(IOException e) {
-            throw new RuntimeException("IOException");
         }
     }
 
