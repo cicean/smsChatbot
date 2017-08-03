@@ -26,7 +26,7 @@ public class SayHelloCommand {
         System.out.println(StringUtils.join(name, " "));
     }
 
-    @CommandHandler(command = "hello <str> ... <int> times")
+    @CommandHandler(command = "hello <str> ... <int> time")
     public void helloArrayParamIntExitToken(List<String> name, int times) {
         for (int i = 0; i < times; i++) {
             System.out.println(StringUtils.join(name, " "));

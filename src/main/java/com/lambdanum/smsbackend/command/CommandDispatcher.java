@@ -2,7 +2,10 @@ package com.lambdanum.smsbackend.command;
 
 import com.lambdanum.smsbackend.command.tree.DecisionNode;
 import com.lambdanum.smsbackend.command.tree.ReservedTokenConverter;
+import com.lambdanum.smsbackend.nlp.TokenizerService;
 import org.apache.commons.lang3.ArrayUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Component;
@@ -13,11 +16,15 @@ import java.util.*;
 @Component
 public class CommandDispatcher {
 
+    private static Logger logger = LoggerFactory.getLogger(CommandDispatcher.class);
+
     private DecisionNode rootNode = DecisionNode.createRootNode();
     private HashMap<String, ReservedTokenConverter> tokenConverters = new HashMap<>();
+    private TokenizerService tokenizerService;
 
     @Autowired
-    public CommandDispatcher(ApplicationContext applicationContext, List<ReservedTokenConverter> tokenConverters) {
+    public CommandDispatcher(ApplicationContext applicationContext, List<ReservedTokenConverter> tokenConverters, TokenizerService tokenizerService) {
+        this.tokenizerService = tokenizerService;
 
         for (Object listener : applicationContext.getBeansWithAnnotation(CommandListener.class).values()) {
             List<Method> methods = Arrays.asList(listener.getClass().getMethods());
@@ -37,6 +44,7 @@ public class CommandDispatcher {
 
                 MethodInvocationWrapper action = new MethodInvocationWrapper(listener, method);
                 if (subTree.isExitNode()) {
+                    logger.error("Error initializing command tree. Multiple identical command definitions.");
                     throw new IllegalStateException("Command '" + method.getAnnotation(CommandHandler.class).command() + "' defined multiple times.");
                 }
                 subTree.setMethodInvocationWrapper(action);
@@ -44,19 +52,43 @@ public class CommandDispatcher {
             }
 
         }
-        System.out.println("Done init tree");
+        logger.info("Initialized command tree.");
 
         tokenConverters.stream().forEach(converter -> this.tokenConverters.put(converter.getMatchedToken(),converter));
 
-        System.out.println("Done init tokenConverters");
-        executeCommand("tell my name is foobar hello");
+        logger.info("Initialized Token converters.");
+        try {
+            System.out.println(tokenizerService.tokenizeAndStem("say hello 5 times"));
+            executeCommand("say hello 5 times");
+        } catch(Exception e) {
+            e.printStackTrace();
+        }
+        try {
+            System.out.println(tokenizerService.tokenizeAndStem("hello michael jackson 3 times"));
+            executeCommand("hello michael jackson 3 times");
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        try {
+            System.out.println(tokenizerService.tokenizeAndStem("tell somebody hello"));
+            executeCommand("tell somebody hello");
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     public Object executeCommand(String command) {
-        return explore(rootNode, command.split(" "), new CommandContext());
+        List<String> tokens = tokenizerService.tokenizeAndStem(command);
+        String[] tokenArray = tokens.toArray(new String[tokens.size()]);
+        String[] referenceString = command.split(" ");
+        if (tokens.size() != referenceString.length) {
+            logger.warn("Stemmed tokens count different to referenceString word count. Using tokenized version only. Parameters might be altered.");
+            return explore(rootNode, tokenArray, tokenArray, new CommandContext());
+        }
+        return explore(rootNode, tokenArray, referenceString, new CommandContext());
     }
 
-    private Object explore(DecisionNode subtree, String[] command, CommandContext context) {
+    private Object explore(DecisionNode subtree, String[] command, String[] reference, CommandContext context) {
         if (command.length == 0) {
             if (!subtree.isExitNode()) {
                 throw new IncompleteCommandException();
@@ -67,25 +99,25 @@ public class CommandDispatcher {
         String nextWord = command[0];
 
         if (subtree.hasChild(nextWord)) {
-            return explore(subtree.getChild(nextWord), ArrayUtils.subarray(command, 1, command.length), context);
+            return explore(subtree.getChild(nextWord), ArrayUtils.subarray(command, 1, command.length), ArrayUtils.subarray(reference, 1, reference.length), context);
         }
 
         for (String child : subtree.getChildren()) {
             if (tokenConverters.containsKey(child)) {
                 if (tokenConverters.get(child).isMatching(nextWord)) {
                     if(isStartOfArrayParameter(subtree.getChild(child))) {
-                        List<Object> arrayParameter = getArrayParameterStartingHere(tokenConverters.get(child),subtree,command);
+                        List<Object> arrayParameter = getArrayParameterStartingHere(tokenConverters.get(child),subtree,reference);
                         context.addArgument(arrayParameter);
-                        return explore(subtree.getChild(child).getChild("..."), ArrayUtils.subarray(command, arrayParameter.size(), command.length),context);
+                        return explore(subtree.getChild(child).getChild("..."), ArrayUtils.subarray(command, arrayParameter.size(), command.length), ArrayUtils.subarray(reference, arrayParameter.size(), reference.length), context);
 
                     }
                     context.addArgument(tokenConverters.get(child).getMatchingObject(nextWord));
-                    return explore(subtree.getChild(child), ArrayUtils.subarray(command, 1, command.length),context);
+                    return explore(subtree.getChild(child), ArrayUtils.subarray(command, 1, command.length),ArrayUtils.subarray(reference, 1, reference.length), context);
                 }
             }
         }
 
-        return explore(subtree, ArrayUtils.subarray(command, 1, command.length), context);
+        return explore(subtree, ArrayUtils.subarray(command, 1, command.length), ArrayUtils.subarray(reference, 1, reference.length), context);
     }
 
     private List<Object> getArrayParameterStartingHere(ReservedTokenConverter converter, DecisionNode node, String[] command) {
