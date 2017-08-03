@@ -92,15 +92,20 @@ public class CommandDispatcher {
         List<Object> arrayParameter = new ArrayList<>();
 
         Set<String> exitWords = node.getChild(converter.getMatchedToken()).getChild("...").getChildren();
+        Set<String> exitTokens = node.getChild(converter.getMatchedToken()).getChild("...").getReservedChildren();
 
         for (String word : command) {
-            if (exitWords.contains(word) || !converter.isMatching(word)) {
+            if (exitWords.contains(word) || !converter.isMatching(word) || setContainsMatcherToken(exitTokens, word)) {
                 break;
             }
             arrayParameter.add(converter.getMatchingObject(word));
         }
 
         return arrayParameter;
+    }
+
+    private boolean setContainsMatcherToken(Set<String> tokens, String matchedWord) {
+        return tokens.stream().anyMatch(token -> tokenConverters.get(token).isMatching(matchedWord));
     }
 
     private boolean isStartOfArrayParameter(DecisionNode node) {

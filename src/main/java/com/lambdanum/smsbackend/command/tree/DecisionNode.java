@@ -6,6 +6,7 @@ import com.lambdanum.smsbackend.command.MethodInvocationWrapper;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 public class DecisionNode {
 
@@ -49,5 +50,9 @@ public class DecisionNode {
 
     public Set<String> getChildren() {
         return children.keySet();
+    }
+
+    public Set<String> getReservedChildren() {
+        return children.keySet().stream().filter(child -> child.startsWith("<") && child.endsWith(">")).collect(Collectors.toSet());
     }
 }
