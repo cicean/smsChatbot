@@ -15,7 +15,7 @@ public class MethodInvocationWrapper {
 
     public Object invoke(Object...args) {
         try {
-            method.invoke(object,args);
+            return method.invoke(object,args);
         } catch (IllegalAccessException e) {
             e.printStackTrace();
         } catch (InvocationTargetException e) {

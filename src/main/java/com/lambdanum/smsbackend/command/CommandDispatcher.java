@@ -35,7 +35,7 @@ public class CommandDispatcher {
 
                 DecisionNode subTree = rootNode;
 
-                for (String word : method.getAnnotation(CommandHandler.class).command().split(" ")) {
+                for (String word : method.getAnnotation(CommandHandler.class).value().split(" ")) {
                     if (!subTree.hasChild(word)) {
                         subTree.registerChild(word,new DecisionNode());
                     }
@@ -45,7 +45,7 @@ public class CommandDispatcher {
                 MethodInvocationWrapper action = new MethodInvocationWrapper(listener, method);
                 if (subTree.isExitNode()) {
                     logger.error("Error initializing command tree. Multiple identical command definitions.");
-                    throw new IllegalStateException("Command '" + method.getAnnotation(CommandHandler.class).command() + "' defined multiple times.");
+                    throw new IllegalStateException("Command '" + method.getAnnotation(CommandHandler.class).value() + "' defined multiple times.");
                 }
                 subTree.setMethodInvocationWrapper(action);
 
@@ -57,24 +57,6 @@ public class CommandDispatcher {
         tokenConverters.stream().forEach(converter -> this.tokenConverters.put(converter.getMatchedToken(),converter));
 
         logger.info("Initialized Token converters.");
-        try {
-            System.out.println(tokenizerService.tokenizeAndStem("say hello 5 times"));
-            executeCommand("say hello 5 times");
-        } catch(Exception e) {
-            e.printStackTrace();
-        }
-        try {
-            System.out.println(tokenizerService.tokenizeAndStem("hello michael jackson 3 times"));
-            executeCommand("hello michael jackson 3 times");
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        try {
-            System.out.println(tokenizerService.tokenizeAndStem("tell somebody hello"));
-            executeCommand("tell somebody hello");
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
     }
 
     public Object executeCommand(String command) {
@@ -91,7 +73,7 @@ public class CommandDispatcher {
     private Object explore(DecisionNode subtree, String[] command, String[] reference, CommandContext context) {
         if (command.length == 0) {
             if (!subtree.isExitNode()) {
-                throw new IncompleteCommandException();
+                throw new UnknownCommandException();
             }
             return subtree.invoke(context.getArgs());
         }

@@ -21,69 +21,6 @@ public class TokenizerService {
     @Autowired
     private ResourceRepository resourceRepository = new ResourceRepository();
 
-    public void foobar() {
-        System.out.println("tokenizer foobar");
-
-        String testString = "Remind me to pick up the kids at kindergarden at 5 PM.";
-
-        System.out.println(testString);
-
-        String[] tokens = null;
-        String[] tags = null;
-        List<String> stems = new ArrayList<>();
-
-        ClassLoader classLoader = getClass().getClassLoader();
-        //Tokenize
-        try {
-            TokenizerModel model = new TokenizerModel(resourceRepository.getResourceFileInputStream("en-token.bin"));
-            Tokenizer tokenizer = new TokenizerME(model);
-            tokens = tokenizer.tokenize(testString);
-            System.out.println("Tokens:");
-            printArray(tokens);
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-
-
-
-        //Tag POS
-
-        POSTaggerME tagger;
-        try {
-            POSModel posModel = new POSModel(resourceRepository.getResourceFileInputStream("en-pos-maxent.bin"));
-            tagger = new POSTaggerME(posModel);
-            tags = tagger.tag(tokens);
-            System.out.println("Tags:");
-            printArray(tags);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-
-        //Stemming
-        SnowballStemmer stemmer = new SnowballStemmer(SnowballStemmer.ALGORITHM.ENGLISH);
-        for (String token : tokens) {
-            stems.add(stemmer.stem(token).toString());
-        }
-        System.out.println("Stems: ");
-        System.out.println(stems);
-
-    }
-
-    private void printArray(String[] array) {
-        String output = "[";
-        for (String string : array) {
-            output += string + ",";
-        }
-        System.out.println(output.substring(0,output.length()-1) + "]");
-    }
-
-    public static void main(String[] args) {
-        TokenizerService tokenizerService = new TokenizerService();
-        tokenizerService.foobar();
-    }
-
     public List<String> tokenizeAndStem(String input) {
         return stem(tokenize(input));
     }
