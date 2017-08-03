@@ -36,6 +36,9 @@ public class CommandDispatcher {
                 }
 
                 MethodInvocationWrapper action = new MethodInvocationWrapper(listener, method);
+                if (subTree.isExitNode()) {
+                    throw new IllegalStateException("Command '" + method.getAnnotation(CommandHandler.class).command() + "' defined multiple times.");
+                }
                 subTree.setMethodInvocationWrapper(action);
 
             }
