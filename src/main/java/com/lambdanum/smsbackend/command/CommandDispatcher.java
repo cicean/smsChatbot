@@ -8,9 +8,7 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Component;
 
 import java.lang.reflect.Method;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
+import java.util.*;
 
 @Component
 public class CommandDispatcher {
@@ -48,6 +46,7 @@ public class CommandDispatcher {
         tokenConverters.stream().forEach(converter -> this.tokenConverters.put(converter.getMatchedToken(),converter));
 
         System.out.println("Done init tokenConverters");
+        executeCommand("tell my name is foobar hello");
     }
 
     public Object executeCommand(String command) {
@@ -71,6 +70,12 @@ public class CommandDispatcher {
         for (String child : subtree.getChildren()) {
             if (tokenConverters.containsKey(child)) {
                 if (tokenConverters.get(child).isMatching(nextWord)) {
+                    if(isStartOfArrayParameter(subtree.getChild(child))) {
+                        List<Object> arrayParameter = getArrayParameterStartingHere(tokenConverters.get(child),subtree,command);
+                        context.addArgument(arrayParameter);
+                        return explore(subtree.getChild(child).getChild("..."), ArrayUtils.subarray(command, arrayParameter.size(), command.length),context);
+
+                    }
                     context.addArgument(tokenConverters.get(child).getMatchingObject(nextWord));
                     return explore(subtree.getChild(child), ArrayUtils.subarray(command, 1, command.length),context);
                 }
@@ -80,4 +85,25 @@ public class CommandDispatcher {
         return explore(subtree, ArrayUtils.subarray(command, 1, command.length), context);
     }
 
+    private List<Object> getArrayParameterStartingHere(ReservedTokenConverter converter, DecisionNode node, String[] command) {
+        if (command.length == 0) {
+            return Collections.emptyList();
+        }
+        List<Object> arrayParameter = new ArrayList<>();
+
+        Set<String> exitWords = node.getChild(converter.getMatchedToken()).getChild("...").getChildren();
+
+        for (String word : command) {
+            if (exitWords.contains(word) || !converter.isMatching(word)) {
+                break;
+            }
+            arrayParameter.add(converter.getMatchingObject(word));
+        }
+
+        return arrayParameter;
+    }
+
+    private boolean isStartOfArrayParameter(DecisionNode node) {
+        return node.hasChild("...");
+    }
 }

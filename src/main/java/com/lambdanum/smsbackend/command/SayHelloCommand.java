@@ -1,5 +1,9 @@
 package com.lambdanum.smsbackend.command;
 
+import org.apache.commons.lang3.StringUtils;
+
+import java.util.List;
+
 @CommandListener
 public class SayHelloCommand {
 
@@ -15,5 +19,10 @@ public class SayHelloCommand {
         for (int i = 0; i < times; i++) {
             System.out.println("Hello " + name + "!");
         }
+    }
+
+    @CommandHandler(command = "tell <str> ... hello")
+    public void helloArrayParam(List<String> name) {
+        System.out.println(StringUtils.join(name, " "));
     }
 }
