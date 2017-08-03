@@ -1,6 +1,6 @@
 Command definition
 ==================
-```
+```java
 @CommandListener
 public class SayHelloCommand {
 
