@@ -45,7 +45,7 @@ public class CommandDispatcher {
                 MethodInvocationWrapper action = new MethodInvocationWrapper(listener, method);
                 if (subTree.isExitNode()) {
                     logger.error("Error initializing command tree. Multiple identical command definitions.");
-                    throw new IllegalStateException("Command '" + method.getAnnotation(CommandHandler.class).value() + "' defined multiple times.");
+                    throw new IllegalStateException("Command '" + method.getAnnotation(CommandHandler.class).value() + "' already defined.");
                 }
                 subTree.setMethodInvocationWrapper(action);
 
@@ -54,7 +54,13 @@ public class CommandDispatcher {
         }
         logger.info("Initialized command tree.");
 
-        tokenConverters.stream().forEach(converter -> this.tokenConverters.put(converter.getMatchedToken(),converter));
+        for (ReservedTokenConverter converter : tokenConverters) {
+            if (this.tokenConverters.containsKey(converter.getMatchedToken())) {
+                logger.error("Error initializing tokenConverters. Conflicting definitions found.");
+                throw new IllegalStateException("Token " + converter.getMatchedToken() + " already defined.");
+            }
+            this.tokenConverters.put(converter.getMatchedToken(), converter);
+        }
 
         logger.info("Initialized Token converters.");
     }

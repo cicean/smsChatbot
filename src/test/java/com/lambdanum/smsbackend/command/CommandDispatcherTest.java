@@ -105,6 +105,12 @@ public class CommandDispatcherTest {
         assertTrue(result instanceof CommandContext);
         assertTrue(((CommandContext)result).getArgs()[0].equals("token"));
     }
+
+    @Test(expected = IllegalStateException.class)
+    public void givenMultipleIdenticalTokenConverterDefinitions_whenConstructingDecisionTree_thenThrowIllegalStateException() {
+        commandDispatcher = new CommandDispatcher(applicationContext, Arrays.asList(tokenConverterMock, tokenConverterMock), tokenizerService);
+    }
+
 }
 
 @CommandListener
