@@ -1,6 +1,7 @@
 package com.lambdanum.smsbackend.command.tree;
 
 
+import com.lambdanum.smsbackend.command.CommandContext;
 import com.lambdanum.smsbackend.command.MethodInvocationWrapper;
 
 import java.util.HashMap;
@@ -40,8 +41,8 @@ public class DecisionNode {
         this.methodInvocationWrapper = methodInvocationWrapper;
     }
 
-    public Object invoke(Object... args) {
-        return methodInvocationWrapper.invoke(args);
+    public Object invoke(CommandContext context) {
+        return methodInvocationWrapper.invoke(context, context.getArgs());
     }
 
     public static DecisionNode createRootNode() {

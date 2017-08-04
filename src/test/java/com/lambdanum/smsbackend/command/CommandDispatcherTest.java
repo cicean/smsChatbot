@@ -11,6 +11,7 @@ import org.springframework.context.ApplicationContext;
 
 import java.util.*;
 
+import static junit.framework.TestCase.assertTrue;
 import static org.junit.Assert.assertEquals;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.eq;
@@ -38,6 +39,8 @@ public class CommandDispatcherTest {
     public static final String COMMAND_WITH_PARAMETER = "foo <token> bar";
 
     public static final String COMMAND_WITH_ARRAY_PARAMETER = "array <token> ... stop";
+
+    public static final String COMMAND_WITH_CONTEXT_PARAMETER = "test <token> context";
 
     @Before
     public void initialize() {
@@ -94,6 +97,14 @@ public class CommandDispatcherTest {
         commandDispatcher.executeCommand("unknowncommandisunknown");
     }
 
+    @Test
+    public void givenContextualCommand_whenExecutingCommand_thenReturnMethodCallWithCommandContext() {
+
+        Object result = commandDispatcher.executeCommand("test token context");
+
+        assertTrue(result instanceof CommandContext);
+        assertTrue(((CommandContext)result).getArgs()[0].equals("token"));
+    }
 }
 
 @CommandListener
@@ -112,6 +123,11 @@ class CommandListenerMock {
     @CommandHandler(CommandDispatcherTest.COMMAND_WITH_ARRAY_PARAMETER)
     public List<String> commandWithArrayParameter(List<String> args) {
         return args;
+    }
+
+    @CommandHandler(CommandDispatcherTest.COMMAND_WITH_CONTEXT_PARAMETER)
+    public CommandContext commandWithContext(CommandContext context, String token) {
+        return context;
     }
 
 }

@@ -75,7 +75,7 @@ public class CommandDispatcher {
             if (!subtree.isExitNode()) {
                 throw new UnknownCommandException();
             }
-            return subtree.invoke(context.getArgs());
+            return subtree.invoke(context);
         }
 
         String nextWord = command[0];
