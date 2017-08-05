@@ -1,5 +1,7 @@
 #!/usr/bin/python
 
+MY_NUMBER = "12345678";
+
 DATABASE_PATH = '/var/mobile/Library/SMS/sms.db';
 
 GET_MESSAGE_SQL_QUERY = "SELECT m.rowid, c.chat_identifier,m.is_from_me,m.date,m.text FROM message m INNER JOIN chat_message_join cmj ON cmj.message_id=m.rowid INNER JOIN chat c ON cmj.chat_id=c.rowid WHERE cmj.message_id=";
@@ -37,11 +39,11 @@ result = sanitizeAndSplitSqliteOutput(output);
 
 if len(result) > 1:
     print """ { "error": """, '"' + str(error) + '"',',';
-    print """ "id":""", '"' + result[0] + '"',',';
-    print """ "chat_identifier":""", '"' + result[1].replace('+','') + '"',',';
-    print """ "is_from_me":""", '"' + str(result[2] == "1").lower() + '"', ',';
+    print """ "contact":""", '"' + result[0] + '"',',';
+    print """ "destination":""", '"' + (MY_NUMBER if result[2] != "1" else result[1].replace('+','')) + '"',',';
+    print """ "source":""", '"' + (MY_NUMBER if result[2] == "1" else result[1].replace('+','')) + '"', ',';
     print """ "date":""", '"' + result[3] + '"',',';
-    print """ "message":""",'"' + result[4] + '"';
+    print """ "content":""",'"' + result[4] + '"';
     print """}""";
 else:
     print """ { "error": "Not Found" }""";

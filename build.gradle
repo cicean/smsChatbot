@@ -10,8 +10,8 @@ buildscript {
 
 apply plugin: 'java'
 apply plugin: 'org.springframework.boot'
-apply plugin: 'idea'
 apply plugin: 'org.javalite.activejdbc'
+apply plugin: 'idea'
 
 jar {
     baseName = 'smsChatbot'

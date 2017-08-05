@@ -2,6 +2,9 @@ package com.lambdanum.smsbackend.command;
 
 import com.lambdanum.smsbackend.command.tree.DecisionNode;
 import com.lambdanum.smsbackend.command.tree.ReservedTokenConverter;
+import com.lambdanum.smsbackend.identity.User;
+import com.lambdanum.smsbackend.messaging.Message;
+import com.lambdanum.smsbackend.messaging.MessageProvider;
 import com.lambdanum.smsbackend.nlp.TokenizerService;
 import org.apache.commons.lang3.ArrayUtils;
 import org.slf4j.Logger;
@@ -65,15 +68,24 @@ public class CommandDispatcher {
         logger.info("Initialized Token converters.");
     }
 
-    public Object executeCommand(String command) {
+    public Object executeCommand(Message incomingMessage, User user, MessageProvider messageProvider) {
+        return executeCommand(incomingMessage.getContent(), new CommandContext(incomingMessage, user, messageProvider));
+    }
+
+    public Object executeCommand(String command, CommandContext context) {
+        command = removePunctuation(command);
         List<String> tokens = tokenizerService.tokenizeAndStem(command);
         String[] tokenArray = tokens.toArray(new String[tokens.size()]);
         String[] referenceString = command.split(" ");
         if (tokens.size() != referenceString.length) {
             logger.warn("Stemmed tokens count different to referenceString word count. Using tokenized version only. Parameters might be altered.");
-            return explore(rootNode, tokenArray, tokenArray, new CommandContext());
+            return explore(rootNode, tokenArray, tokenArray, context);
         }
-        return explore(rootNode, tokenArray, referenceString, new CommandContext());
+        return explore(rootNode, tokenArray, referenceString, context);
+    }
+
+    private String removePunctuation(String command) {
+        return command.replace(".","").replace(",","");
     }
 
     private Object explore(DecisionNode subtree, String[] command, String[] reference, CommandContext context) {
