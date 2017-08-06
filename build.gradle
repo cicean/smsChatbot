@@ -4,13 +4,11 @@ buildscript {
     }
     dependencies {
         classpath("org.springframework.boot:spring-boot-gradle-plugin:1.5.4.RELEASE")
-        classpath group: 'org.javalite', name: 'activejdbc-gradle-plugin', version: '1.4.13'
     }
 }
 
 apply plugin: 'java'
 apply plugin: 'org.springframework.boot'
-apply plugin: 'org.javalite.activejdbc'
 apply plugin: 'idea'
 
 jar {
@@ -29,8 +27,9 @@ dependencies {
     compile 'org.springframework.boot:spring-boot-starter-web'
     compile 'org.apache.opennlp:opennlp-tools:1.8.1'
     compile 'org.xerial:sqlite-jdbc:3.8.11.2'
-    compile 'org.javalite:activejdbc:1.4.13'
+    compile 'org.hibernate:hibernate-core:5.2.10.Final'
     compile group: 'org.apache.commons', name: 'commons-lang3', version: '3.0'
+    compile group: 'mysql', name: 'mysql-connector-java', version: '6.0.6'
     testCompile 'junit:junit:4.12'
     testCompile('org.springframework.boot:spring-boot-starter-test')
     testCompile 'org.mockito:mockito-core:2.+'

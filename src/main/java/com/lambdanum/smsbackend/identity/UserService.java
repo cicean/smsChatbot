@@ -1,6 +1,6 @@
 package com.lambdanum.smsbackend.identity;
 
-import com.lambdanum.smsbackend.command.UserRole;
+import com.lambdanum.smsbackend.command.UserRoleEnum;
 import com.lambdanum.smsbackend.database.UserDAO;
 import com.lambdanum.smsbackend.messaging.MessageProviderEnum;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,7 +21,7 @@ public class UserService {
         if (user == null) {
             user = new User();
             user.setContact(contact);
-            user.addRole(UserRole.NOBODY);
+            user.addRole(UserRoleEnum.NOBODY);
             user.setMessageProvider(messageProvider);
             userDAO.persist(user);
         }

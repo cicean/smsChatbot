@@ -8,6 +8,6 @@ public @interface CommandHandler {
 
     String value();
 
-    UserRole requiredRole() default UserRole.INTRODUCED;
+    UserRoleEnum requiredRole() default UserRoleEnum.INTRODUCED;
 
 }

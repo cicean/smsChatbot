@@ -3,7 +3,7 @@ package com.lambdanum.smsbackend.command.tree;
 
 import com.lambdanum.smsbackend.command.CommandContext;
 import com.lambdanum.smsbackend.command.MethodInvocationWrapper;
-import com.lambdanum.smsbackend.command.UserRole;
+import com.lambdanum.smsbackend.command.UserRoleEnum;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -15,7 +15,7 @@ public class DecisionNode {
     private Map<String, DecisionNode> children = new HashMap<>();
 
     private MethodInvocationWrapper methodInvocationWrapper;
-    private UserRole requiredRole;
+    private UserRoleEnum requiredRole;
 
     public DecisionNode() {}
 
@@ -62,11 +62,11 @@ public class DecisionNode {
         return children.keySet().stream().filter(child -> child.startsWith("<") && child.endsWith(">")).collect(Collectors.toSet());
     }
 
-    public UserRole getRequiredRole() {
+    public UserRoleEnum getRequiredRole() {
         return requiredRole;
     }
 
-    public void setRequiredRole(UserRole requiredRole) {
+    public void setRequiredRole(UserRoleEnum requiredRole) {
         this.requiredRole = requiredRole;
     }
 }

@@ -45,7 +45,7 @@ public class CommandDispatcher {
                     subTree = subTree.getChild(word);
                 }
 
-                UserRole requiredPrivilege = method.getAnnotation(CommandHandler.class).requiredRole();
+                UserRoleEnum requiredPrivilege = method.getAnnotation(CommandHandler.class).requiredRole();
                 MethodInvocationWrapper action = new MethodInvocationWrapper(listener, method);
                 if (subTree.isExitNode()) {
                     logger.error("Error initializing command tree. Multiple identical command definitions.");
@@ -78,7 +78,7 @@ public class CommandDispatcher {
         CommandContext dummyContext = new CommandContext();
         User dummyUser = new User();
         dummyUser.setName("dummy");
-        dummyUser.addRole(UserRole.INTRODUCED);
+        dummyUser.addRole(UserRoleEnum.INTRODUCED);
         dummyContext.setUser(dummyUser);
         return executeCommand(command, dummyContext);
     }
@@ -99,7 +99,8 @@ public class CommandDispatcher {
         return command.replace(".", " . ")
                         .replace(",", " , ")
                         .replace(":"," : ")
-                        .replace(";"," ; ");
+                        .replace(";"," ; ")
+                        .replace("  ", " ");
     }
 
     private Object explore(DecisionNode subtree, String[] command, String[] reference, CommandContext context) {

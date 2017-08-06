@@ -5,10 +5,13 @@ import com.lambdanum.smsbackend.command.UnknownCommandException;
 import com.lambdanum.smsbackend.command.tree.UnauthorizedCommandException;
 import com.lambdanum.smsbackend.identity.User;
 import com.lambdanum.smsbackend.identity.UserService;
+import org.hibernate.SessionFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+
+import javax.persistence.EntityManager;
 
 @Component
 public class MessageReplyService {

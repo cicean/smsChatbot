@@ -2,62 +2,41 @@ package com.lambdanum.smsbackend.database;
 
 import com.lambdanum.smsbackend.identity.User;
 import com.lambdanum.smsbackend.messaging.MessageProviderEnum;
-import org.javalite.activejdbc.Base;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import javax.persistence.EntityManager;
 import java.util.List;
 
 @Component
 public class UserDAO implements DAO<User> {
 
-    private static final String DATABASE_DRIVER = "org.sqlite.JDBC";
-    private static final String DATABASE_URL = "jdbc:sqlite:/home/kento/identity.db";
-    private static final String DATABASE_USERNAME = "";
-    private static final String DATABASE_PASSWORD = "";
+    private EntityManager entityManager;
 
     @Autowired
-    public UserDAO() {
+    public UserDAO(EntityManager entityManager) {
+        this.entityManager = entityManager;
 
     }
 
+    @Deprecated
     @Override
-    public User findById(String id) {
-
-        return User.findById(id);
-    }
-
-    @Override
-    public List<User> findWhere(String whereClause) {
-        Base.open(DATABASE_DRIVER, DATABASE_URL, DATABASE_USERNAME, DATABASE_PASSWORD);
-        List<User> users = User.where(whereClause);
-        users.size();
-        Base.close();
-        return users;
-    }
-
-    @Override
-    public List<User> findWhere(String whereClause, Object... params) {
-        Base.open(DATABASE_DRIVER, DATABASE_URL, DATABASE_USERNAME, DATABASE_PASSWORD);
-        List<User> users = User.where(whereClause,params);
-        users.size();
-        Base.close();
-        return users;
+    public User findById(int id) {
+        return entityManager.find(User.class, id);
     }
 
     @Override
     public void persist(User entity) {
-        Base.open(DATABASE_DRIVER, DATABASE_URL, DATABASE_USERNAME, DATABASE_PASSWORD);
-        entity.saveIt();
-        Base.close();
+        entityManager.persist(entity);
     }
 
     public User findByContact(String userContact, MessageProviderEnum messageProviderEnum) {
+        List<User> users = entityManager.createQuery("from User where contact=:contact", User.class).setParameter("contact",userContact).getResultList();
 
-        List<User> users = findWhere("contact = " + userContact + " and provider_id=" + messageProviderEnum.getId());
-        if (!users.isEmpty()) {
-            return users.get(0);
+        if (users.isEmpty()) {
+            return null;
         }
-        return null;
+        return users.get(0);
+
     }
 }

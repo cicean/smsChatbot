@@ -1,14 +1,8 @@
 package com.lambdanum.smsbackend.database;
 
-import java.util.List;
+public interface DAO<T> {
 
-public interface DAO<T extends Entity> {
-
-    T findById(String id);
-
-    List<T> findWhere(String whereClause);
-
-    List<T> findWhere(String whereClause, Object... params);
+    T findById(int id);
 
     void persist(T entity);
 
