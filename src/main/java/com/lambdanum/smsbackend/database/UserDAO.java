@@ -29,24 +29,32 @@ public class UserDAO implements DAO<User> {
 
     @Override
     public List<User> findWhere(String whereClause) {
-        return User.where(whereClause);
+        Base.open(DATABASE_DRIVER, DATABASE_URL, DATABASE_USERNAME, DATABASE_PASSWORD);
+        List<User> users = User.where(whereClause);
+        users.size();
+        Base.close();
+        return users;
     }
 
     @Override
     public List<User> findWhere(String whereClause, Object... params) {
-        return User.where(whereClause,params);
+        Base.open(DATABASE_DRIVER, DATABASE_URL, DATABASE_USERNAME, DATABASE_PASSWORD);
+        List<User> users = User.where(whereClause,params);
+        users.size();
+        Base.close();
+        return users;
     }
 
     @Override
     public void persist(User entity) {
-        //Base.open(DATABASE_DRIVER, DATABASE_URL, DATABASE_USERNAME, DATABASE_PASSWORD);
+        Base.open(DATABASE_DRIVER, DATABASE_URL, DATABASE_USERNAME, DATABASE_PASSWORD);
         entity.saveIt();
-        //Base.commitTransaction();
+        Base.close();
     }
 
     public User findByContact(String userContact, MessageProviderEnum messageProviderEnum) {
-        Base.open(DATABASE_DRIVER, DATABASE_URL, DATABASE_USERNAME, DATABASE_PASSWORD);
-        List<User> users = User.where("contact = " + userContact + " and provider_id=" + messageProviderEnum.getId());
+
+        List<User> users = findWhere("contact = " + userContact + " and provider_id=" + messageProviderEnum.getId());
         if (!users.isEmpty()) {
             return users.get(0);
         }

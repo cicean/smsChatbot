@@ -1,8 +1,11 @@
 package com.lambdanum.smsbackend.identity;
 
+import com.lambdanum.smsbackend.command.UserRole;
 import com.lambdanum.smsbackend.database.Entity;
 import com.lambdanum.smsbackend.messaging.MessageProviderEnum;
+import org.javalite.activejdbc.annotations.Table;
 
+@Table("users")
 public class User extends Entity {
 
     public String getContact() {
@@ -26,14 +29,14 @@ public class User extends Entity {
         set("provider_id", messageProvider.getId());
     }
 
-    public boolean hasRole(String role) {
-        return getString(role).equals('Y');
+    public boolean hasRole(UserRole role) {
+        return "Y".equals(getString(role.name()));
     }
 
-    public void addRole(String role) {
-        set("role", 'Y');
+    public void addRole(UserRole role) {
+        set(role.name(), 'Y');
     }
-    public void removeRole(String role) {
-        set("role",'N');
+    public void removeRole(UserRole role) {
+        set(role.name(),'N');
     }
 }

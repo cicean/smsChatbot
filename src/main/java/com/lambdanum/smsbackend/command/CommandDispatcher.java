@@ -45,12 +45,14 @@ public class CommandDispatcher {
                     subTree = subTree.getChild(word);
                 }
 
+                UserRole requiredPrivilege = method.getAnnotation(CommandHandler.class).requiredRole();
                 MethodInvocationWrapper action = new MethodInvocationWrapper(listener, method);
                 if (subTree.isExitNode()) {
                     logger.error("Error initializing command tree. Multiple identical command definitions.");
                     throw new IllegalStateException("Command '" + method.getAnnotation(CommandHandler.class).value() + "' already defined.");
                 }
                 subTree.setMethodInvocationWrapper(action);
+                subTree.setRequiredRole(requiredPrivilege);
 
             }
 
@@ -72,8 +74,17 @@ public class CommandDispatcher {
         return executeCommand(incomingMessage.getContent(), new CommandContext(incomingMessage, user, messageProvider));
     }
 
+    public Object executeCommand(String command) {
+        CommandContext dummyContext = new CommandContext();
+        User dummyUser = new User();
+        dummyUser.setName("dummy");
+        dummyUser.addRole(UserRole.INTRODUCED);
+        dummyContext.setUser(dummyUser);
+        return executeCommand(command, dummyContext);
+    }
+
     public Object executeCommand(String command, CommandContext context) {
-        command = removePunctuation(command);
+        command = separatedPunctuation(command);
         List<String> tokens = tokenizerService.tokenizeAndStem(command);
         String[] tokenArray = tokens.toArray(new String[tokens.size()]);
         String[] referenceString = command.split(" ");
@@ -84,8 +95,11 @@ public class CommandDispatcher {
         return explore(rootNode, tokenArray, referenceString, context);
     }
 
-    private String removePunctuation(String command) {
-        return command.replace(".","").replace(",","");
+    private String separatedPunctuation(String command) {
+        return command.replace(".", " . ")
+                        .replace(",", " , ")
+                        .replace(":"," : ")
+                        .replace(";"," ; ");
     }
 
     private Object explore(DecisionNode subtree, String[] command, String[] reference, CommandContext context) {

@@ -3,6 +3,7 @@ package com.lambdanum.smsbackend.command.tree;
 
 import com.lambdanum.smsbackend.command.CommandContext;
 import com.lambdanum.smsbackend.command.MethodInvocationWrapper;
+import com.lambdanum.smsbackend.command.UserRole;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -14,6 +15,7 @@ public class DecisionNode {
     private Map<String, DecisionNode> children = new HashMap<>();
 
     private MethodInvocationWrapper methodInvocationWrapper;
+    private UserRole requiredRole;
 
     public DecisionNode() {}
 
@@ -42,7 +44,10 @@ public class DecisionNode {
     }
 
     public Object invoke(CommandContext context) {
-        return methodInvocationWrapper.invoke(context, context.getArgs());
+        if (context.getUser().hasRole(requiredRole)) {
+            return methodInvocationWrapper.invoke(context, context.getArgs());
+        }
+        throw new UnauthorizedCommandException();
     }
 
     public static DecisionNode createRootNode() {
@@ -55,5 +60,13 @@ public class DecisionNode {
 
     public Set<String> getReservedChildren() {
         return children.keySet().stream().filter(child -> child.startsWith("<") && child.endsWith(">")).collect(Collectors.toSet());
+    }
+
+    public UserRole getRequiredRole() {
+        return requiredRole;
+    }
+
+    public void setRequiredRole(UserRole requiredRole) {
+        this.requiredRole = requiredRole;
     }
 }

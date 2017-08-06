@@ -3,26 +3,47 @@ package com.lambdanum.smsbackend.actions;
 import com.lambdanum.smsbackend.command.CommandContext;
 import com.lambdanum.smsbackend.command.CommandHandler;
 import com.lambdanum.smsbackend.command.CommandListener;
+import com.lambdanum.smsbackend.command.UserRole;
+import com.lambdanum.smsbackend.database.UserDAO;
+import com.lambdanum.smsbackend.identity.User;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.List;
 
 @CommandListener
 public class Introductions {
 
-    @CommandHandler("hello")
-    public void registerUser(CommandContext commandContext) {
-        commandContext.reply("Hello! Here is an example of my skills.");
+    private UserDAO userDAO;
+
+    @Autowired
+    public Introductions(UserDAO userDAO) {
+        this.userDAO = userDAO;
     }
-    @CommandHandler("hello name is <str> ...")
+
+    @CommandHandler(value = "hello", requiredRole = UserRole.NOBODY)
+    public void registerUser(CommandContext commandContext) {
+        commandContext.reply("Hello! ");
+    }
+
+
+    @CommandHandler(value = "hello name is <str> ...", requiredRole = UserRole.NOBODY)
     public void registerUserWithName(CommandContext commandContext, List<String> name) {
-        commandContext.reply(String.format("Hello %s!" , StringUtils.join(name, " ")));
+        User user = commandContext.getUser();
+        user.setName(StringUtils.join(name, " "));
+        user.addRole(UserRole.INTRODUCED);
+        userDAO.persist(user);
+        commandContext.reply(String.format("Hello %s." , StringUtils.join(name, " ")));
+
         try {
             if (name.get(0).equals("Harry") && name.get(1).equals("Potter")) {
                 commandContext.reply("My name is Tom Riddle");
             }
-        } catch (Exception e) {
+        } catch (Exception e) { }
+    }
 
-        }
+    @CommandHandler(value = "secret", requiredRole = UserRole.INTRODUCED)
+    public void secretCommand(CommandContext context){
+        context.reply("You found the secret! Foobar! 42! Emily faked cancer once yahoO0OO0OoOo!");
     }
 }
