@@ -1,9 +1,6 @@
 package com.lambdanum.smsbackend.actions;
 
-import com.lambdanum.smsbackend.command.CommandContext;
-import com.lambdanum.smsbackend.command.CommandHandler;
-import com.lambdanum.smsbackend.command.CommandListener;
-import com.lambdanum.smsbackend.command.UserRoleEnum;
+import com.lambdanum.smsbackend.command.*;
 import com.lambdanum.smsbackend.database.UserDAO;
 import com.lambdanum.smsbackend.identity.User;
 import com.lambdanum.smsbackend.nlp.StringHelper;
@@ -24,9 +21,14 @@ public class Introductions {
 
     @CommandHandler(value = "hello", requiredRole = UserRoleEnum.NOBODY)
     public void registerUser(CommandContext commandContext) {
-        commandContext.reply("Hello. ");
+        commandContext.reply("Hello. You can start by telling me your name.");
     }
 
+    @Conversational("registerUser")
+    @CommandHandler(value = "name is <str> ...", requiredRole = UserRoleEnum.NOBODY)
+    public void setUserName(CommandContext context, List<String> name) {
+        registerUserWithName(context,name);
+    }
 
     @CommandHandler(value = "hello name is <str> ...", requiredRole = UserRoleEnum.NOBODY)
     public void registerUserWithName(CommandContext commandContext, List<String> name) {

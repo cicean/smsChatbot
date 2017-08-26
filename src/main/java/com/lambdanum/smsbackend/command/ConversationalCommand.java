@@ -15,7 +15,7 @@ public class ConversationalCommand {
     }
 
     public boolean isExpired() {
-        return additionDate.plusMinutes(5).isBefore(ZonedDateTime.now());
+        return additionDate.plusMinutes(2).isBefore(ZonedDateTime.now());
     }
 
     public DecisionNode getRootNode() {
