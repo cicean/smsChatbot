@@ -26,6 +26,8 @@ public class CommandDispatcher {
     private HashMap<String, ReservedTokenConverter> tokenConverters = new HashMap<>();
     private TokenizerService tokenizerService;
 
+    private HashMap<String,DecisionNode> conversationalTrees = new HashMap<>();
+
     @Autowired
     public CommandDispatcher(ApplicationContext applicationContext, List<ReservedTokenConverter> tokenConverters, TokenizerService tokenizerService) {
         this.tokenizerService = tokenizerService;
@@ -36,24 +38,16 @@ public class CommandDispatcher {
                 if (method.getAnnotation(CommandHandler.class) == null) {
                     continue;
                 }
-
-                DecisionNode subTree = rootNode;
-
-                for (String word : method.getAnnotation(CommandHandler.class).value().split(" ")) {
-                    if (!subTree.hasChild(word)) {
-                        subTree.registerChild(word,new DecisionNode());
-                    }
-                    subTree = subTree.getChild(word);
+                Conversational conversationalAnnotation = method.getAnnotation(Conversational.class);
+                if (conversationalAnnotation != null) {
+                    String conversationalContext = conversationalAnnotation.value();
+                    DecisionNode conversationalRootNode = new DecisionNode();
+                    conversationalTrees.put(conversationalContext, conversationalRootNode);
+                    registerHandlerMethod(conversationalRootNode, method, listener);
+                } else {
+                    registerHandlerMethod(rootNode, method, listener);
                 }
 
-                UserRoleEnum requiredPrivilege = method.getAnnotation(CommandHandler.class).requiredRole();
-                MethodInvocationWrapper action = new MethodInvocationWrapper(listener, method);
-                if (subTree.isExitNode()) {
-                    logger.error("Error initializing command tree. Multiple identical command definitions.");
-                    throw new IllegalStateException("Command '" + method.getAnnotation(CommandHandler.class).value() + "' already defined.");
-                }
-                subTree.setMethodInvocationWrapper(action);
-                subTree.setRequiredRole(requiredPrivilege);
             }
 
         }
@@ -68,11 +62,32 @@ public class CommandDispatcher {
         }
 
         logger.info("Initialized Token converters.");
+
+
+
     }
 
+    public void registerHandlerMethod(DecisionNode rootNode, Method method, Object listener) {
+        DecisionNode subTree = rootNode;
 
+        for (String word : method.getAnnotation(CommandHandler.class).value().split(" ")) {
+            if (!subTree.hasChild(word)) {
+                subTree.registerChild(word,new DecisionNode());
+            }
+            subTree = subTree.getChild(word);
+        }
 
+        UserRoleEnum requiredPrivilege = method.getAnnotation(CommandHandler.class).requiredRole();
+        MethodInvocationWrapper action = new MethodInvocationWrapper(listener, method);
+        if (subTree.isExitNode()) {
+            logger.error("Error initializing command tree. Multiple identical command definitions.");
+            throw new IllegalStateException("Command '" + method.getAnnotation(CommandHandler.class).value() + "' already defined.");
+        }
+        subTree.setMethodInvocationWrapper(action);
+        subTree.setRequiredRole(requiredPrivilege);
+    }
 
+    @Deprecated
     public Object executeCommand(Message incomingMessage, User user, MessageProvider messageProvider) {
         return executeCommand(incomingMessage.getContent(), new CommandContext(incomingMessage, user, messageProvider));
     }
@@ -93,15 +108,35 @@ public class CommandDispatcher {
         String[] referenceString = command.split(" ");
         if (tokens.size() != referenceString.length) {
             logger.warn("Stemmed tokens count different to referenceString word count. Using tokenized version only. Parameters might be altered.");
-            return explore(rootNode, tokenArray, tokenArray, context);
+            try {
+                return exploreConversationalTrees(tokenArray, tokenArray, context);
+            } catch (UnknownCommandException e) {
+                return explore(rootNode, tokenArray, tokenArray, context);
+            }
         }
-        return explore(rootNode, tokenArray, referenceString, context);
+        try {
+            return exploreConversationalTrees(tokenArray, referenceString, context);
+        } catch (UnknownCommandException e) {
+            return explore(rootNode, tokenArray, referenceString, context);
+        }
+    }
+
+    private Object exploreConversationalTrees(String[] command, String [] reference, CommandContext context) {
+        for (ConversationalCommand conversationalCommand : context.getConversationalCommands()) {
+            try {
+                return explore(conversationalCommand.getRootNode(), command, reference, context);
+            } catch (UnknownCommandException e) { }
+        }
+        throw new UnknownCommandException();
     }
 
     private Object explore(DecisionNode subtree, String[] command, String[] reference, CommandContext context) {
         if (command.length == 0) {
             if (!subtree.isExitNode()) {
                 throw new UnknownCommandException();
+            }
+            if (conversationalTrees.containsKey(subtree.getMethodName())) {
+                context.addConversationalCommand(conversationalTrees.get(subtree.getMethodName()));
             }
             return subtree.invoke(context);
         }

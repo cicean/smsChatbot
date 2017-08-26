@@ -1,7 +1,13 @@
 package com.lambdanum.smsbackend.command;
 
 import com.lambdanum.smsbackend.command.tree.ReservedTokenConverter;
+import com.lambdanum.smsbackend.identity.User;
+import com.lambdanum.smsbackend.messaging.Message;
+import com.lambdanum.smsbackend.messaging.MessageProvider;
+import com.lambdanum.smsbackend.messaging.MessageProviderEnum;
 import com.lambdanum.smsbackend.nlp.TokenizerService;
+import com.lambdanum.smsbackend.sms.SmsProvider;
+import com.lambdanum.smsbackend.sms.model.Sms;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -41,7 +47,7 @@ public class CommandDispatcherTest {
     public static final String COMMAND_WITH_ARRAY_PARAMETER = "array <token> ... stop";
 
     public static final String COMMAND_WITH_CONTEXT_PARAMETER = "test <token> context";
-    public static final String CONVERSATIONAL_COMMAND = "thanks";
+    public static final String CONVERSATIONAL_COMMAND = "thank you";
 
     @Before
     public void initialize() {
@@ -112,6 +118,61 @@ public class CommandDispatcherTest {
         commandDispatcher = new CommandDispatcher(applicationContext, Arrays.asList(tokenConverterMock, tokenConverterMock), tokenizerService);
     }
 
+    @Test
+    public void givenInContextConversationalCommand_whenExecutingConversionalCommand_thenExecuteConversationalCommand() {
+        User user = getDummyUser();
+        Message dummyMessage = getDummyMessage();
+        MessageProvider messageProvider = new SmsProvider();
+
+        CommandContextFactory contextFactory = new CommandContextFactory();
+        CommandContext context = contextFactory.getCommandContext(dummyMessage,user,messageProvider);
+
+        commandDispatcher.executeCommand(COMMAND_WITHOUT_PARAMETER, context);
+
+        String result = (String)commandDispatcher.executeCommand(CONVERSATIONAL_COMMAND, contextFactory.getCommandContext(dummyMessage, user, messageProvider));
+
+        assertEquals("thanks", result);
+
+    }
+
+    private User getDummyUser() {
+        User user = new User();
+        user.setName("dummy");
+        user.setContact("1234");
+        user.setMessageProvider(MessageProviderEnum.SMS);
+        user.setId(1337);
+        Set<UserRoleEnum> userRoles = new HashSet<>();
+        userRoles.addAll(Arrays.asList(UserRoleEnum.NOBODY, UserRoleEnum.INTRODUCED));
+        user.setUserRoles(userRoles);
+        return user;
+    }
+
+    private Message getDummyMessage() {
+
+        Sms dummyMessage = new Sms();
+        dummyMessage.setSource("4321");
+        dummyMessage.setDestination("1234");
+        dummyMessage.setContent(COMMAND_WITHOUT_PARAMETER);
+        dummyMessage.setId(123L);
+        dummyMessage.setDate(new Date());
+        return dummyMessage;
+    }
+
+    @Test(expected = UnknownCommandException.class)
+    public void givenOutOfContextConversationCommand_whenExecutingCommand_thenThrowUnknownCommandException() {
+        User user = getDummyUser();
+        Message dummyMessage = getDummyMessage();
+        MessageProvider messageProvider = new SmsProvider();
+
+        CommandContextFactory contextFactory = new CommandContextFactory();
+        CommandContext context = contextFactory.getCommandContext(dummyMessage,user,messageProvider);
+
+        //commandDispatcher.executeCommand(COMMAND_WITH_ARRAY_PARAMETER, context);
+        commandDispatcher.executeCommand(CONVERSATIONAL_COMMAND, context);
+
+    }
+
+
 }
 
 @CommandListener
@@ -137,7 +198,7 @@ class CommandListenerMock {
         return context;
     }
 
-    @Conversational(CommandListenerMock.class)
+    @Conversational("commandWithoutParameters")
     @CommandHandler(CommandDispatcherTest.CONVERSATIONAL_COMMAND)
     public String conversationalCommand() {
         return "thanks";

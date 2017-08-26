@@ -69,4 +69,8 @@ public class DecisionNode {
     public void setRequiredRole(UserRoleEnum requiredRole) {
         this.requiredRole = requiredRole;
     }
+
+    public String getMethodName() {
+        return methodInvocationWrapper.getMethodName();
+    }
 }

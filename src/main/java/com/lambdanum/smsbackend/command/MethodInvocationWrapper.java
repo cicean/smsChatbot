@@ -34,4 +34,8 @@ public class MethodInvocationWrapper {
     public boolean isContextual() {
         return contextual;
     }
+
+    public String getMethodName() {
+        return method.getName();
+    }
 }

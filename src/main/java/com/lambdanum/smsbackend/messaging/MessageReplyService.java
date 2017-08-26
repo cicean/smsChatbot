@@ -1,5 +1,7 @@
 package com.lambdanum.smsbackend.messaging;
 
+import com.lambdanum.smsbackend.command.CommandContext;
+import com.lambdanum.smsbackend.command.CommandContextFactory;
 import com.lambdanum.smsbackend.command.CommandDispatcher;
 import com.lambdanum.smsbackend.command.UnknownCommandException;
 import com.lambdanum.smsbackend.command.tree.UnauthorizedCommandException;
@@ -18,20 +20,23 @@ public class MessageReplyService {
     private CommandDispatcher commandDispatcher;
     private UserService userService;
     private MessageProviderCollection messageProviderCollection;
+    private CommandContextFactory commandContextFactory;
 
     @Autowired
     public MessageReplyService(CommandDispatcher commandDispatcher, UserService userService,
-                               MessageProviderCollection messageProviderCollection) {
+                               MessageProviderCollection messageProviderCollection, CommandContextFactory commandContextFactory) {
         this.commandDispatcher = commandDispatcher;
         this.userService = userService;
         this.messageProviderCollection = messageProviderCollection;
+        this.commandContextFactory = commandContextFactory;
     }
 
     public void replyToMessage(Message incomingMessage) {
         User user = userService.getOrCreateUser(incomingMessage.getSource(),incomingMessage.getMessageProvider());
         MessageProvider provider = messageProviderCollection.getMessageProvider(incomingMessage.getMessageProvider());
         try {
-            commandDispatcher.executeCommand(incomingMessage, user, provider);
+            CommandContext context = commandContextFactory.getCommandContext(incomingMessage, user, provider);
+            commandDispatcher.executeCommand(incomingMessage.getContent(), context);
         } catch (UnknownCommandException e) {
             logger.warn("Unknown command : " + incomingMessage.getContent());
         } catch (UnauthorizedCommandException e) {
