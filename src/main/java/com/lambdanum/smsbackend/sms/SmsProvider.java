@@ -19,7 +19,8 @@ public class SmsProvider implements MessageProvider {
 
     @Override
     public SendResult sendMessage(Message message) {
-        return restTemplate.getForObject(SMS_LINE_URL + String.format("/send_message.py?destination=%s&message=%s",message.getDestination(), message.getContent()),SendSmsResult.class);
+        return restTemplate.getForObject(SMS_LINE_URL + String.format("/send_message.py?destination=%s&message=%s",
+                        message.getDestination(), message.getContent()),SendSmsResult.class);
     }
 
     @Override

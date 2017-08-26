@@ -5,6 +5,7 @@ import com.lambdanum.smsbackend.command.tree.ReservedTokenConverter;
 import com.lambdanum.smsbackend.identity.User;
 import com.lambdanum.smsbackend.messaging.Message;
 import com.lambdanum.smsbackend.messaging.MessageProvider;
+import com.lambdanum.smsbackend.nlp.StringHelper;
 import com.lambdanum.smsbackend.nlp.TokenizerService;
 import org.apache.commons.lang3.ArrayUtils;
 import org.slf4j.Logger;
@@ -53,7 +54,6 @@ public class CommandDispatcher {
                 }
                 subTree.setMethodInvocationWrapper(action);
                 subTree.setRequiredRole(requiredPrivilege);
-
             }
 
         }
@@ -70,6 +70,9 @@ public class CommandDispatcher {
         logger.info("Initialized Token converters.");
     }
 
+
+
+
     public Object executeCommand(Message incomingMessage, User user, MessageProvider messageProvider) {
         return executeCommand(incomingMessage.getContent(), new CommandContext(incomingMessage, user, messageProvider));
     }
@@ -84,7 +87,7 @@ public class CommandDispatcher {
     }
 
     public Object executeCommand(String command, CommandContext context) {
-        command = separatedPunctuation(command);
+        command = StringHelper.spacePunctuation(command);
         List<String> tokens = tokenizerService.tokenizeAndStem(command);
         String[] tokenArray = tokens.toArray(new String[tokens.size()]);
         String[] referenceString = command.split(" ");
@@ -93,14 +96,6 @@ public class CommandDispatcher {
             return explore(rootNode, tokenArray, tokenArray, context);
         }
         return explore(rootNode, tokenArray, referenceString, context);
-    }
-
-    private String separatedPunctuation(String command) {
-        return command.replace(".", " . ")
-                        .replace(",", " , ")
-                        .replace(":"," : ")
-                        .replace(";"," ; ")
-                        .replace("  ", " ");
     }
 
     private Object explore(DecisionNode subtree, String[] command, String[] reference, CommandContext context) {

@@ -13,7 +13,6 @@ public class TransactionFilter extends GenericFilterBean implements Filter {
 
     private EntityManager entityManager;
 
-
     @Autowired
     public TransactionFilter(EntityManager entityManager) {
         this.entityManager = entityManager;
@@ -22,7 +21,6 @@ public class TransactionFilter extends GenericFilterBean implements Filter {
     @Override
     public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain) throws IOException, ServletException {
         entityManager.getTransaction().begin();
-
         try {
             chain.doFilter(request,response);
             entityManager.getTransaction().commit();

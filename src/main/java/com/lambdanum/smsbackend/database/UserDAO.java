@@ -31,7 +31,9 @@ public class UserDAO implements DAO<User> {
     }
 
     public User findByContact(String userContact, MessageProviderEnum messageProviderEnum) {
-        List<User> users = entityManager.createQuery("from User where contact=:contact", User.class).setParameter("contact",userContact).getResultList();
+        List<User> users = entityManager.createQuery("from User where contact=:contact and messageProvider=:provider", User.class)
+                        .setParameter("contact",userContact)
+                        .setParameter("provider", messageProviderEnum).getResultList();
 
         if (users.isEmpty()) {
             return null;

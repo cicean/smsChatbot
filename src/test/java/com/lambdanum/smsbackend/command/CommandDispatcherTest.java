@@ -41,6 +41,7 @@ public class CommandDispatcherTest {
     public static final String COMMAND_WITH_ARRAY_PARAMETER = "array <token> ... stop";
 
     public static final String COMMAND_WITH_CONTEXT_PARAMETER = "test <token> context";
+    public static final String CONVERSATIONAL_COMMAND = "thanks";
 
     @Before
     public void initialize() {
@@ -134,6 +135,12 @@ class CommandListenerMock {
     @CommandHandler(CommandDispatcherTest.COMMAND_WITH_CONTEXT_PARAMETER)
     public CommandContext commandWithContext(CommandContext context, String token) {
         return context;
+    }
+
+    @Conversational(CommandListenerMock.class)
+    @CommandHandler(CommandDispatcherTest.CONVERSATIONAL_COMMAND)
+    public String conversationalCommand() {
+        return "thanks";
     }
 
 }
