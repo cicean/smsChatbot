@@ -61,6 +61,10 @@ public class CommandContext {
         conversationalCommands.add(new ConversationalCommand(conversationalRootNode));
     }
 
+    public void clearArguments() {
+        args = new ArrayList<>();
+    }
+
     public void cleanupConversationalCommands() {
         boolean hasRemovedOne = true;
         while (hasRemovedOne) {

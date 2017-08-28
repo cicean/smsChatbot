@@ -1,10 +1,8 @@
 package com.lambdanum.smsbackend.identity;
 
-import com.lambdanum.smsbackend.command.UserRoleEnum;
 import com.lambdanum.smsbackend.messaging.MessageProviderEnum;
 
 import javax.persistence.*;
-import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Set;
 

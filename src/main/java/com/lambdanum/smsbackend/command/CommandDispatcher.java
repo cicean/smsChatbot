@@ -3,6 +3,7 @@ package com.lambdanum.smsbackend.command;
 import com.lambdanum.smsbackend.command.tree.DecisionNode;
 import com.lambdanum.smsbackend.command.tree.ReservedTokenConverter;
 import com.lambdanum.smsbackend.identity.User;
+import com.lambdanum.smsbackend.identity.UserRoleEnum;
 import com.lambdanum.smsbackend.messaging.Message;
 import com.lambdanum.smsbackend.messaging.MessageProvider;
 import com.lambdanum.smsbackend.nlp.StringHelper;

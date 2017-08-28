@@ -3,6 +3,7 @@ package com.lambdanum.smsbackend.actions;
 import com.lambdanum.smsbackend.command.*;
 import com.lambdanum.smsbackend.database.UserDAO;
 import com.lambdanum.smsbackend.identity.User;
+import com.lambdanum.smsbackend.identity.UserRoleEnum;
 import com.lambdanum.smsbackend.nlp.StringHelper;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -48,6 +49,6 @@ public class Introductions {
 
     @CommandHandler(value = "secret", requiredRole = UserRoleEnum.INTRODUCED)
     public void secretCommand(CommandContext context){
-        context.reply("You found the secret! Foobar! 42! Emily faked cancer once yahoO0OO0OoOo!");
+        context.reply("This is an example of a restricted command.");
     }
 }

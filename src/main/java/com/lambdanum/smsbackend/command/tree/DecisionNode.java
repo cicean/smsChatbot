@@ -3,7 +3,7 @@ package com.lambdanum.smsbackend.command.tree;
 
 import com.lambdanum.smsbackend.command.CommandContext;
 import com.lambdanum.smsbackend.command.MethodInvocationWrapper;
-import com.lambdanum.smsbackend.command.UserRoleEnum;
+import com.lambdanum.smsbackend.identity.UserRoleEnum;
 
 import java.util.HashMap;
 import java.util.Map;

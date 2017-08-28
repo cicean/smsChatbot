@@ -1,6 +1,5 @@
 package com.lambdanum.smsbackend.identity;
 
-import com.lambdanum.smsbackend.command.UserRoleEnum;
 import com.lambdanum.smsbackend.database.UserDAO;
 import com.lambdanum.smsbackend.messaging.MessageProviderEnum;
 import org.springframework.beans.factory.annotation.Autowired;

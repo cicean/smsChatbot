@@ -17,6 +17,7 @@ public class CommandContextFactory {
             CommandContext context = commandContexts.get(user.getId());
             context.setMessage(message);
             context.cleanupConversationalCommands();
+            context.clearArguments();
             return commandContexts.get(user.getId());
         }
         CommandContext context = new CommandContext(message,user,messageProvider);

@@ -1,4 +1,4 @@
-package com.lambdanum.smsbackend.command;
+package com.lambdanum.smsbackend.identity;
 
 public enum UserRoleEnum {
     NOBODY(0),
