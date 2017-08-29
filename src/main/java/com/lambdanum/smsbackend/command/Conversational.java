@@ -11,4 +11,6 @@ public @interface Conversational {
 
     String value();
 
+    Class<?> targetClass() default String.class;
+
 }

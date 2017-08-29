@@ -73,4 +73,8 @@ public class DecisionNode {
     public String getMethodName() {
         return methodInvocationWrapper.getMethodName();
     }
+
+    public Class<?> getMethodClass() {
+        return methodInvocationWrapper.getMethodClass();
+    }
 }

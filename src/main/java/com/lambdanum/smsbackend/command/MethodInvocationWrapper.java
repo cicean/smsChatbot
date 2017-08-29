@@ -38,4 +38,8 @@ public class MethodInvocationWrapper {
     public String getMethodName() {
         return method.getName();
     }
+
+    public Class<?> getMethodClass() {
+        return object.getClass();
+    }
 }

@@ -37,6 +37,7 @@ public class CommandDispatcherTest {
     private ApplicationContext applicationContext;
 
     CommandListenerMock commandListenerMock = new CommandListenerMock();
+    ConversationalCommandListenerMock conversationalCommandListenerMock = new ConversationalCommandListenerMock();
 
     ReservedTokenConverterMock tokenConverterMock = new ReservedTokenConverterMock();
 
@@ -49,11 +50,13 @@ public class CommandDispatcherTest {
 
     public static final String COMMAND_WITH_CONTEXT_PARAMETER = "test <token> context";
     public static final String CONVERSATIONAL_COMMAND = "thank you";
+    public static final String CROSS_CLASS_CONVERSATIONAL_COMMAND = "cross class";
 
     @Before
     public void initialize() {
         Map<String, Object> commandListeners = new HashMap<>();
         commandListeners.put("commandListenerMock",commandListenerMock);
+        commandListeners.put("conversationalCommandListenerMock", conversationalCommandListenerMock);
 
         when(applicationContext.getBeansWithAnnotation(eq(CommandListener.class))).thenReturn(commandListeners);
 
@@ -120,7 +123,7 @@ public class CommandDispatcherTest {
     }
 
     @Test
-    public void givenInContextConversationalCommand_whenExecutingConversionalCommand_thenExecuteConversationalCommand() {
+    public void givenInContextConversationalCommand_whenExecutingConversationalCommand_thenExecuteConversationalCommand() {
         User user = getDummyUser();
         Message dummyMessage = getDummyMessage();
         MessageProvider messageProvider = new SmsProvider();
@@ -173,6 +176,33 @@ public class CommandDispatcherTest {
 
     }
 
+    @Test
+    public void givenCrossClassConversationalCommand_whenExecutingCommand_thenReturnConversationalCommandResult() {
+        User user = getDummyUser();
+        Sms message = (Sms)getDummyMessage();
+        message.setContent(COMMAND_WITHOUT_PARAMETER);
+        MessageProvider messageProvider = new SmsProvider();
+
+        CommandContextFactory contextFactory = new CommandContextFactory();
+        CommandContext context = contextFactory.getCommandContext(message,user,messageProvider);
+
+        commandDispatcher.executeCommand(COMMAND_WITHOUT_PARAMETER, context);
+
+        message.setContent(CROSS_CLASS_CONVERSATIONAL_COMMAND);
+        commandDispatcher.executeCommand(CROSS_CLASS_CONVERSATIONAL_COMMAND, contextFactory.getCommandContext(message,user,messageProvider));
+    }
+
+    @Test(expected = UnknownCommandException.class)
+    public void givenOutOfContextCrossClassConversationalCommand_whenExecutingConversationalCommand_thenThrowUnknownCommandException() {
+        User user = getDummyUser();
+        Sms message = (Sms)getDummyMessage();
+        MessageProvider messageProvider = new SmsProvider();
+
+        CommandContextFactory contextFactory = new CommandContextFactory();
+
+        message.setContent(CROSS_CLASS_CONVERSATIONAL_COMMAND);
+        commandDispatcher.executeCommand(CROSS_CLASS_CONVERSATIONAL_COMMAND, contextFactory.getCommandContext(message,user,messageProvider));
+    }
 
 }
 
@@ -207,6 +237,15 @@ class CommandListenerMock {
 
 }
 
+@CommandListener
+class ConversationalCommandListenerMock {
+    @CommandHandler(CommandDispatcherTest.CROSS_CLASS_CONVERSATIONAL_COMMAND)
+    @Conversational(targetClass = CommandListenerMock.class, value = "commandWithoutParameters")
+    public String crossClassConversationalCommand() {
+        return "cross class command";
+    }
+}
+
 class ReservedTokenConverterMock implements ReservedTokenConverter {
 
     @Override
@@ -227,6 +266,11 @@ class ReservedTokenConverterMock implements ReservedTokenConverter {
 
 
 class TokenizerServiceMock extends TokenizerService {
+
+    public TokenizerServiceMock() {
+        super(null,null);
+    }
+
     @Override
     public List<String> tokenizeAndStem(String command) {
         return Arrays.asList(command.split(" "));

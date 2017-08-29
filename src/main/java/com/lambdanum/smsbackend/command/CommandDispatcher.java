@@ -1,5 +1,6 @@
 package com.lambdanum.smsbackend.command;
 
+import com.lambdanum.smsbackend.command.tree.ConversationalTree;
 import com.lambdanum.smsbackend.command.tree.DecisionNode;
 import com.lambdanum.smsbackend.command.tree.ReservedTokenConverter;
 import com.lambdanum.smsbackend.identity.User;
@@ -27,13 +28,15 @@ public class CommandDispatcher {
     private HashMap<String, ReservedTokenConverter> tokenConverters = new HashMap<>();
     private TokenizerService tokenizerService;
 
-    private HashMap<String,DecisionNode> conversationalTrees = new HashMap<>();
+    private Map<Class<?>, ConversationalTree> conversationalTrees = new HashMap<>();
 
     @Autowired
     public CommandDispatcher(ApplicationContext applicationContext, List<ReservedTokenConverter> tokenConverters, TokenizerService tokenizerService) {
         this.tokenizerService = tokenizerService;
 
         for (Object listener : applicationContext.getBeansWithAnnotation(CommandListener.class).values()) {
+            conversationalTrees.put(listener.getClass(),new ConversationalTree());
+
             List<Method> methods = Arrays.asList(listener.getClass().getMethods());
             for (Method method : methods) {
                 if (method.getAnnotation(CommandHandler.class) == null) {
@@ -41,9 +44,10 @@ public class CommandDispatcher {
                 }
                 Conversational conversationalAnnotation = method.getAnnotation(Conversational.class);
                 if (conversationalAnnotation != null) {
-                    String conversationalContext = conversationalAnnotation.value();
-                    DecisionNode conversationalRootNode = new DecisionNode();
-                    conversationalTrees.put(conversationalContext, conversationalRootNode);
+                    String conversationTrigger = conversationalAnnotation.value();
+                    Class<?> triggerClass = (conversationalAnnotation.targetClass() == String.class) ? listener.getClass() : conversationalAnnotation.targetClass();
+
+                    DecisionNode conversationalRootNode = conversationalTrees.get(triggerClass).getOrCreateRootNodeForMethod(conversationTrigger);
                     registerHandlerMethod(conversationalRootNode, method, listener);
                 } else {
                     registerHandlerMethod(rootNode, method, listener);
@@ -136,8 +140,8 @@ public class CommandDispatcher {
             if (!subtree.isExitNode()) {
                 throw new UnknownCommandException();
             }
-            if (conversationalTrees.containsKey(subtree.getMethodName())) {
-                context.addConversationalCommand(conversationalTrees.get(subtree.getMethodName()));
+            if (conversationalTrees.containsKey(subtree.getMethodClass()) && conversationalTrees.get(subtree.getMethodClass()).containsConversationalMethod(subtree.getMethodName())) {
+                context.addConversationalCommand(conversationalTrees.get(subtree.getMethodClass()).getConversationalMethodTree(subtree.getMethodName()));
             }
             return subtree.invoke(context);
         }
