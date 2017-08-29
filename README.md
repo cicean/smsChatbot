@@ -17,6 +17,12 @@ public class SayHelloCommand {
             System.out.println("Hello " + name + "!");
         }
     }
+
+    //This command can only be executed after "execute" has been called.
+    @Conversational("execute")
+    @CommandHandler(command = "one more time") {
+        System.out.println("Hello");
+    }
 }
 
 ```
