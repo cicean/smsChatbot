@@ -51,4 +51,9 @@ public class Introductions {
     public void secretCommand(CommandContext context){
         context.reply("This is an example of a restricted command.");
     }
+
+    @CommandHandler("thank")
+    public String thanks() {
+        return "You're welcome!";
+    }
 }

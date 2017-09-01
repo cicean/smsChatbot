@@ -39,8 +39,8 @@
         <property name="hibernate.current_session_context_class">thread</property>
 
         <mapping class="com.lambdanum.smsbackend.identity.User"/>
-        <!--<mapping class="com.lambdanum.smsbackend.identity.UserRole"/>-->
-
+        <mapping class="com.lambdanum.smsbackend.model.TodoItem" />
+        <mapping class="com.lambdanum.smsbackend.model.TodoList" />
 
     </session-factory>
 
