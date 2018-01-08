@@ -1,20 +1,19 @@
 package com.lambdanum.smsbackend.sms.model;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
 import com.lambdanum.smsbackend.messaging.Message;
+import com.lambdanum.smsbackend.messaging.MessageProviderEnum;
 
 import java.util.Date;
 
 public class Sms implements Message {
 
+    private static String MY_NUMBER = "12345678";
+
     private Long id;
-    @JsonProperty("message")
     private String content;
-    @JsonProperty("chat_identifier")
     private String destination;
+    private String source;
     private Date date;
-    @JsonProperty("is_from_me")
-    private Boolean isOutbound;
 
     public Long getId() {
         return id;
@@ -27,6 +26,15 @@ public class Sms implements Message {
     @Override
     public String getContent() {
         return content;
+    }
+
+    @Override
+    public String getSource() {
+        return source;
+    }
+
+    public void setSource(String source) {
+        this.source = source;
     }
 
     public void setContent(String content) {
@@ -49,7 +57,22 @@ public class Sms implements Message {
 
     @Override
     public Boolean isOutbound() {
-        return isOutbound;
+        return source.equals(MY_NUMBER);
+    }
+
+    @Override
+    public MessageProviderEnum getMessageProvider() {
+        return MessageProviderEnum.SMS;
+    }
+
+    @Override
+    public Message createResponseMessage(String destination, String content) {
+        Sms response = new Sms();
+        response.setDestination(destination);
+        response.setContent(content);
+        response.setSource(MY_NUMBER);
+        response.setDate(new Date());
+        return response;
     }
 
     public void setDate(Date date) {

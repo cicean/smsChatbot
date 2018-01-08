@@ -18,7 +18,8 @@ import java.util.List;
 @Component
 public class TokenizerService {
 
-    private ResourceRepository resourceRepository = new ResourceRepository();
+    @Autowired
+    private ResourceRepository resourceRepository;
 
     public List<String> tokenizeAndStem(String input) {
         return stem(tokenize(input));
@@ -26,7 +27,6 @@ public class TokenizerService {
 
     private String[] tokenize(String input) {
         ClassLoader classLoader = getClass().getClassLoader();
-        //Tokenize
         try {
             String[] tokens;
             TokenizerModel model = new TokenizerModel(resourceRepository.getResourceFileInputStream("en-token.bin"));

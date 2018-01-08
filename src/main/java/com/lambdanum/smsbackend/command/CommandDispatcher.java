@@ -2,6 +2,10 @@ package com.lambdanum.smsbackend.command;
 
 import com.lambdanum.smsbackend.command.tree.DecisionNode;
 import com.lambdanum.smsbackend.command.tree.ReservedKeyWordConverter;
+import com.lambdanum.smsbackend.identity.User;
+import com.lambdanum.smsbackend.messaging.Message;
+import com.lambdanum.smsbackend.messaging.MessageProvider;
+import com.lambdanum.smsbackend.nlp.StringHelper;
 import com.lambdanum.smsbackend.nlp.TokenizerService;
 import org.apache.commons.lang3.ArrayUtils;
 import org.slf4j.Logger;
@@ -42,13 +46,14 @@ public class CommandDispatcher {
                     subTree = subTree.getChild(word);
                 }
 
+                UserRoleEnum requiredPrivilege = method.getAnnotation(CommandHandler.class).requiredRole();
                 MethodInvocationWrapper action = new MethodInvocationWrapper(listener, method);
                 if (subTree.isExitNode()) {
                     logger.error("Error initializing command tree. Multiple identical command definitions.");
                     throw new IllegalStateException("Command '" + method.getAnnotation(CommandHandler.class).value() + "' already defined.");
                 }
                 subTree.setMethodInvocationWrapper(action);
-
+                subTree.setRequiredRole(requiredPrivilege);
             }
 
         }
@@ -65,15 +70,32 @@ public class CommandDispatcher {
         logger.info("Initialized Token converters.");
     }
 
+
+
+
+    public Object executeCommand(Message incomingMessage, User user, MessageProvider messageProvider) {
+        return executeCommand(incomingMessage.getContent(), new CommandContext(incomingMessage, user, messageProvider));
+    }
+
     public Object executeCommand(String command) {
+        CommandContext dummyContext = new CommandContext();
+        User dummyUser = new User();
+        dummyUser.setName("dummy");
+        dummyUser.addRole(UserRoleEnum.INTRODUCED);
+        dummyContext.setUser(dummyUser);
+        return executeCommand(command, dummyContext);
+    }
+
+    public Object executeCommand(String command, CommandContext context) {
+        command = StringHelper.spacePunctuation(command);
         List<String> tokens = tokenizerService.tokenizeAndStem(command);
         String[] tokenArray = tokens.toArray(new String[tokens.size()]);
         String[] referenceString = command.split(" ");
         if (tokens.size() != referenceString.length) {
             logger.warn("Stemmed tokens count different to referenceString word count. Using tokenized version only. Parameters might be altered.");
-            return explore(rootNode, tokenArray, tokenArray, new CommandContext());
+            return explore(rootNode, tokenArray, tokenArray, context);
         }
-        return explore(rootNode, tokenArray, referenceString, new CommandContext());
+        return explore(rootNode, tokenArray, referenceString, context);
     }
 
     private Object explore(DecisionNode subtree, String[] command, String[] reference, CommandContext context) {
