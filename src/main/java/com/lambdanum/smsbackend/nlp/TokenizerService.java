@@ -33,12 +33,9 @@ public class TokenizerService {
             Tokenizer tokenizer = new TokenizerME(model);
             tokens = tokenizer.tokenize(input);
             return tokens;
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
         } catch (IOException e) {
-            e.printStackTrace();
+            throw new ParsingInfrastructureException();
         }
-        return new String[]{};
     }
 
     private List<String> stem(String[] tokens) {
