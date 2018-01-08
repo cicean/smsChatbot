@@ -1,6 +1,6 @@
 package com.lambdanum.smsbackend.command.tree;
 
-public interface ReservedTokenConverter {
+public interface ReservedKeyWordConverter {
 
     boolean isMatching(String value);
 

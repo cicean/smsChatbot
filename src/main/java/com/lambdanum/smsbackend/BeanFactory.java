@@ -45,8 +45,7 @@ public class BeanFactory {
     public Tokenizer tokenizer(ResourceRepository resourceRepository) {
         try {
             TokenizerModel model = new TokenizerModel(resourceRepository.getResourceFileInputStream("en-token.bin"));
-            Tokenizer tokenizer = new TokenizerME(model);
-            return tokenizer;
+            return new TokenizerME(model);
         } catch (IOException e) {
             throw new RuntimeException("Could not instantiate tokenizer");
         }
