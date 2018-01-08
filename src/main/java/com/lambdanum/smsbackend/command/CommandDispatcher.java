@@ -1,8 +1,10 @@
 package com.lambdanum.smsbackend.command;
 
+import com.lambdanum.smsbackend.command.tree.ConversationalTree;
 import com.lambdanum.smsbackend.command.tree.DecisionNode;
 import com.lambdanum.smsbackend.command.tree.ReservedKeyWordConverter;
 import com.lambdanum.smsbackend.identity.User;
+import com.lambdanum.smsbackend.identity.UserRoleEnum;
 import com.lambdanum.smsbackend.messaging.Message;
 import com.lambdanum.smsbackend.messaging.MessageProvider;
 import com.lambdanum.smsbackend.nlp.StringHelper;
@@ -26,34 +28,31 @@ public class CommandDispatcher {
     private HashMap<String, ReservedKeyWordConverter> tokenConverters = new HashMap<>();
     private TokenizerService tokenizerService;
 
+    private Map<Class<?>, ConversationalTree> conversationalTrees = new HashMap<>();
+
     @Autowired
     public CommandDispatcher(ApplicationContext applicationContext, List<ReservedKeyWordConverter> tokenConverters, TokenizerService tokenizerService) {
         this.tokenizerService = tokenizerService;
 
         for (Object listener : applicationContext.getBeansWithAnnotation(CommandListener.class).values()) {
+            conversationalTrees.put(listener.getClass(),new ConversationalTree());
+
             List<Method> methods = Arrays.asList(listener.getClass().getMethods());
             for (Method method : methods) {
                 if (method.getAnnotation(CommandHandler.class) == null) {
                     continue;
                 }
+                Conversational conversationalAnnotation = method.getAnnotation(Conversational.class);
+                if (conversationalAnnotation != null) {
+                    String conversationTrigger = conversationalAnnotation.value();
+                    Class<?> triggerClass = (conversationalAnnotation.targetClass() == String.class) ? listener.getClass() : conversationalAnnotation.targetClass();
 
-                DecisionNode subTree = rootNode;
-
-                for (String word : method.getAnnotation(CommandHandler.class).value().split(" ")) {
-                    if (!subTree.hasChild(word)) {
-                        subTree.registerChild(word,new DecisionNode());
-                    }
-                    subTree = subTree.getChild(word);
+                    DecisionNode conversationalRootNode = conversationalTrees.get(triggerClass).getOrCreateRootNodeForMethod(conversationTrigger);
+                    registerHandlerMethod(conversationalRootNode, method, listener);
+                } else {
+                    registerHandlerMethod(rootNode, method, listener);
                 }
 
-                UserRoleEnum requiredPrivilege = method.getAnnotation(CommandHandler.class).requiredRole();
-                MethodInvocationWrapper action = new MethodInvocationWrapper(listener, method);
-                if (subTree.isExitNode()) {
-                    logger.error("Error initializing command tree. Multiple identical command definitions.");
-                    throw new IllegalStateException("Command '" + method.getAnnotation(CommandHandler.class).value() + "' already defined.");
-                }
-                subTree.setMethodInvocationWrapper(action);
-                subTree.setRequiredRole(requiredPrivilege);
             }
 
         }
@@ -68,11 +67,32 @@ public class CommandDispatcher {
         }
 
         logger.info("Initialized Token converters.");
+
+
+
     }
 
+    public void registerHandlerMethod(DecisionNode rootNode, Method method, Object listener) {
+        DecisionNode subTree = rootNode;
 
+        for (String word : method.getAnnotation(CommandHandler.class).value().split(" ")) {
+            if (!subTree.hasChild(word)) {
+                subTree.registerChild(word,new DecisionNode());
+            }
+            subTree = subTree.getChild(word);
+        }
 
+        UserRoleEnum requiredPrivilege = method.getAnnotation(CommandHandler.class).requiredRole();
+        MethodInvocationWrapper action = new MethodInvocationWrapper(listener, method);
+        if (subTree.isExitNode()) {
+            logger.error("Error initializing command tree. Multiple identical command definitions.");
+            throw new IllegalStateException("Command '" + method.getAnnotation(CommandHandler.class).value() + "' already defined.");
+        }
+        subTree.setMethodInvocationWrapper(action);
+        subTree.setRequiredRole(requiredPrivilege);
+    }
 
+    @Deprecated
     public Object executeCommand(Message incomingMessage, User user, MessageProvider messageProvider) {
         return executeCommand(incomingMessage.getContent(), new CommandContext(incomingMessage, user, messageProvider));
     }
@@ -93,15 +113,35 @@ public class CommandDispatcher {
         String[] referenceString = command.split(" ");
         if (tokens.size() != referenceString.length) {
             logger.warn("Stemmed tokens count different to referenceString word count. Using tokenized version only. Parameters might be altered.");
-            return explore(rootNode, tokenArray, tokenArray, context);
+            try {
+                return exploreConversationalTrees(tokenArray, tokenArray, context);
+            } catch (UnknownCommandException e) {
+                return explore(rootNode, tokenArray, tokenArray, context);
+            }
         }
-        return explore(rootNode, tokenArray, referenceString, context);
+        try {
+            return exploreConversationalTrees(tokenArray, referenceString, context);
+        } catch (UnknownCommandException e) {
+            return explore(rootNode, tokenArray, referenceString, context);
+        }
+    }
+
+    private Object exploreConversationalTrees(String[] command, String [] reference, CommandContext context) {
+        for (ConversationalCommand conversationalCommand : context.getConversationalCommands()) {
+            try {
+                return explore(conversationalCommand.getRootNode(), command, reference, context);
+            } catch (UnknownCommandException e) { }
+        }
+        throw new UnknownCommandException();
     }
 
     private Object explore(DecisionNode subtree, String[] command, String[] reference, CommandContext context) {
         if (command.length == 0) {
             if (!subtree.isExitNode()) {
                 throw new UnknownCommandException();
+            }
+            if (conversationalTrees.containsKey(subtree.getMethodClass()) && conversationalTrees.get(subtree.getMethodClass()).containsConversationalMethod(subtree.getMethodName())) {
+                context.addConversationalCommand(conversationalTrees.get(subtree.getMethodClass()).getConversationalMethodTree(subtree.getMethodName()));
             }
             return subtree.invoke(context);
         }
