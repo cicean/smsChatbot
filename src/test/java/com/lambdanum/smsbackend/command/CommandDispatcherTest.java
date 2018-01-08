@@ -1,6 +1,6 @@
 package com.lambdanum.smsbackend.command;
 
-import com.lambdanum.smsbackend.command.tree.ReservedTokenConverter;
+import com.lambdanum.smsbackend.command.tree.ReservedKeyWordConverter;
 import com.lambdanum.smsbackend.nlp.TokenizerService;
 import org.junit.Before;
 import org.junit.Test;
@@ -31,7 +31,7 @@ public class CommandDispatcherTest {
 
     CommandListenerMock commandListenerMock = new CommandListenerMock();
 
-    ReservedTokenConverterMock tokenConverterMock = new ReservedTokenConverterMock();
+    ReservedKeyWordConverterMock tokenConverterMock = new ReservedKeyWordConverterMock();
 
     public static final String COMMAND_WITHOUT_PARAMETER = "hello foo bar";
     public static final String COMMAND_WITHOUT_PARAMETER_RESULT = "COMMANDWITHOUDPARAMETER";
@@ -51,7 +51,7 @@ public class CommandDispatcherTest {
 
         when(tokenizerService.tokenizeAndStem(any())).then(i -> Arrays.asList(((String)i.getArguments()[0]).split(" ")));
 
-        List<ReservedTokenConverter> tokenConverters = Arrays.asList(tokenConverterMock);
+        List<ReservedKeyWordConverter> tokenConverters = Arrays.asList(tokenConverterMock);
 
         commandDispatcher = new CommandDispatcher(applicationContext, tokenConverters, tokenizerService);
 
@@ -138,7 +138,7 @@ class CommandListenerMock {
 
 }
 
-class ReservedTokenConverterMock implements ReservedTokenConverter {
+class ReservedKeyWordConverterMock implements ReservedKeyWordConverter {
 
     @Override
     public boolean isMatching(String value) {

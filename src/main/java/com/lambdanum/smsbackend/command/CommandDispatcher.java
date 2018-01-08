@@ -1,7 +1,7 @@
 package com.lambdanum.smsbackend.command;
 
 import com.lambdanum.smsbackend.command.tree.DecisionNode;
-import com.lambdanum.smsbackend.command.tree.ReservedTokenConverter;
+import com.lambdanum.smsbackend.command.tree.ReservedKeyWordConverter;
 import com.lambdanum.smsbackend.nlp.TokenizerService;
 import org.apache.commons.lang3.ArrayUtils;
 import org.slf4j.Logger;
@@ -19,11 +19,11 @@ public class CommandDispatcher {
     private static Logger logger = LoggerFactory.getLogger(CommandDispatcher.class);
 
     private DecisionNode rootNode = DecisionNode.createRootNode();
-    private HashMap<String, ReservedTokenConverter> tokenConverters = new HashMap<>();
+    private HashMap<String, ReservedKeyWordConverter> tokenConverters = new HashMap<>();
     private TokenizerService tokenizerService;
 
     @Autowired
-    public CommandDispatcher(ApplicationContext applicationContext, List<ReservedTokenConverter> tokenConverters, TokenizerService tokenizerService) {
+    public CommandDispatcher(ApplicationContext applicationContext, List<ReservedKeyWordConverter> tokenConverters, TokenizerService tokenizerService) {
         this.tokenizerService = tokenizerService;
 
         for (Object listener : applicationContext.getBeansWithAnnotation(CommandListener.class).values()) {
@@ -54,7 +54,7 @@ public class CommandDispatcher {
         }
         logger.info("Initialized command tree.");
 
-        for (ReservedTokenConverter converter : tokenConverters) {
+        for (ReservedKeyWordConverter converter : tokenConverters) {
             if (this.tokenConverters.containsKey(converter.getMatchedToken())) {
                 logger.error("Error initializing tokenConverters. Conflicting definitions found.");
                 throw new IllegalStateException("Token " + converter.getMatchedToken() + " already defined.");
@@ -108,7 +108,7 @@ public class CommandDispatcher {
         return explore(subtree, ArrayUtils.subarray(command, 1, command.length), ArrayUtils.subarray(reference, 1, reference.length), context);
     }
 
-    private List<Object> getArrayParameterStartingHere(ReservedTokenConverter converter, DecisionNode node, String[] command) {
+    private List<Object> getArrayParameterStartingHere(ReservedKeyWordConverter converter, DecisionNode node, String[] command) {
         if (command.length == 0) {
             return Collections.emptyList();
         }
