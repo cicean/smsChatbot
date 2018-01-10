@@ -7,12 +7,12 @@ import java.util.HashMap;
 import java.util.List;
 
 @Component
-public class MessageProviderCollection {
+public class MessageProviderRepository {
 
     private HashMap<Class<? extends MessageProvider>, MessageProvider> providers;
 
     @Autowired
-    public MessageProviderCollection(List<MessageProvider> messageProviders) {
+    public MessageProviderRepository(List<MessageProvider> messageProviders) {
         providers = new HashMap<>();
         messageProviders.stream().forEach(provider -> providers.put(provider.getClass(), provider));
     }

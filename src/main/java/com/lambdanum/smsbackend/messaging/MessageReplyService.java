@@ -19,21 +19,21 @@ public class MessageReplyService {
 
     private CommandDispatcher commandDispatcher;
     private UserService userService;
-    private MessageProviderCollection messageProviderCollection;
+    private MessageProviderRepository messageProviderRepository;
     private CommandContextFactory commandContextFactory;
 
     @Autowired
     public MessageReplyService(CommandDispatcher commandDispatcher, UserService userService,
-                               MessageProviderCollection messageProviderCollection, CommandContextFactory commandContextFactory) {
+                               MessageProviderRepository messageProviderRepository, CommandContextFactory commandContextFactory) {
         this.commandDispatcher = commandDispatcher;
         this.userService = userService;
-        this.messageProviderCollection = messageProviderCollection;
+        this.messageProviderRepository = messageProviderRepository;
         this.commandContextFactory = commandContextFactory;
     }
 
     public void replyToMessage(Message incomingMessage) {
         User user = userService.getOrCreateUser(incomingMessage.getSource(),incomingMessage.getMessageProvider());
-        MessageProvider provider = messageProviderCollection.getMessageProvider(incomingMessage.getMessageProvider());
+        MessageProvider provider = messageProviderRepository.getMessageProvider(incomingMessage.getMessageProvider());
         try {
             CommandContext context = commandContextFactory.getCommandContext(incomingMessage, user, provider);
             commandDispatcher.executeCommand(incomingMessage.getContent(), context);
