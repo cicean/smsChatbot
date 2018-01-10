@@ -23,7 +23,7 @@ public class SayHelloCommand {
         System.out.println("WARNING: Dropping table !");
     }
 
-    //This command can only be executed after "execute" has been called.
+    //This command can only be executed after the "execute" method has been called.
     @Conversational("execute")
     @CommandHandler(command = "one more time") {
         System.out.println("Hello");
